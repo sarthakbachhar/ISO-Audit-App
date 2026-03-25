@@ -1,0 +1,687 @@
+---
+# ============================================================
+# ISO 27001 Annex A.8 - Ubuntu System Configuration Collector
+# ============================================================
+# This playbook collects system configuration data from an
+# Ubuntu server and outputs it as a structured JSON file.
+#
+# Usage:
+#   ansible-playbook -i "localhost," -c local collector.yml
+#
+# Or use the wrapper script:
+#   sudo ./collect.sh
+#
+# Output: system_config.json
+# ============================================================
+
+- name: "ISO 27001 A.8 - Collect Ubuntu System Configuration"
+  hosts: all
+  become: yes
+  gather_facts: yes
+  vars:
+    output_dir: "{{ playbook_dir }}"
+
+  tasks:
+
+    # ========================================================
+    # SYSTEM INFORMATION
+    # ========================================================
+
+    - name: "[SYS] Get hostname"
+      command: hostname -f
+      register: _hostname
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SYS] Get primary IP address"
+      shell: "hostname -I | awk '{print $1}'"
+      register: _ip_address
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SYS] Get OS version"
+      shell: "lsb_release -ds 2>/dev/null || cat /etc/os-release | grep PRETTY_NAME | cut -d'\"' -f2"
+      register: _os_version
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SYS] Get kernel version"
+      command: uname -r
+      register: _kernel
+      changed_when: false
+
+    - name: "[SYS] Get architecture"
+      command: uname -m
+      register: _arch
+      changed_when: false
+
+    - name: "[SYS] Get uptime"
+      shell: "uptime -p | sed 's/^up //'"
+      register: _uptime
+      changed_when: false
+      ignore_errors: yes
+
+    # ========================================================
+    # A.8.5 - SSH CONFIGURATION
+    # ========================================================
+
+    - name: "[SSH] Check if sshd_config exists"
+      stat:
+        path: /etc/ssh/sshd_config
+      register: _sshd_config_stat
+
+    - name: "[SSH] Read PermitRootLogin"
+      shell: "grep -i '^\\s*PermitRootLogin' /etc/ssh/sshd_config | awk '{print $2}' | tail -1"
+      register: _ssh_permit_root
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read PasswordAuthentication"
+      shell: "grep -i '^\\s*PasswordAuthentication' /etc/ssh/sshd_config | awk '{print $2}' | tail -1"
+      register: _ssh_password_auth
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read PubkeyAuthentication"
+      shell: "grep -i '^\\s*PubkeyAuthentication' /etc/ssh/sshd_config | awk '{print $2}' | tail -1"
+      register: _ssh_pubkey_auth
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read PermitEmptyPasswords"
+      shell: "grep -i '^\\s*PermitEmptyPasswords' /etc/ssh/sshd_config | awk '{print $2}' | tail -1"
+      register: _ssh_empty_pass
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read MaxAuthTries"
+      shell: "grep -i '^\\s*MaxAuthTries' /etc/ssh/sshd_config | awk '{print $2}' | tail -1"
+      register: _ssh_max_auth
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read LoginGraceTime"
+      shell: "grep -i '^\\s*LoginGraceTime' /etc/ssh/sshd_config | awk '{print $2}' | tail -1"
+      register: _ssh_grace_time
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read X11Forwarding"
+      shell: "grep -i '^\\s*X11Forwarding' /etc/ssh/sshd_config | awk '{print $2}' | tail -1"
+      register: _ssh_x11
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read Protocol"
+      shell: "grep -i '^\\s*Protocol' /etc/ssh/sshd_config | awk '{print $2}' | tail -1"
+      register: _ssh_protocol
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read LogLevel"
+      shell: "grep -i '^\\s*LogLevel' /etc/ssh/sshd_config | awk '{print $2}' | tail -1"
+      register: _ssh_loglevel
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read ClientAliveInterval"
+      shell: "grep -i '^\\s*ClientAliveInterval' /etc/ssh/sshd_config | awk '{print $2}' | tail -1"
+      register: _ssh_alive_interval
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read ClientAliveCountMax"
+      shell: "grep -i '^\\s*ClientAliveCountMax' /etc/ssh/sshd_config | awk '{print $2}' | tail -1"
+      register: _ssh_alive_count
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read AllowTcpForwarding"
+      shell: "grep -i '^\\s*AllowTcpForwarding' /etc/ssh/sshd_config | awk '{print $2}' | tail -1"
+      register: _ssh_tcp_fwd
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read Banner"
+      shell: "grep -i '^\\s*Banner' /etc/ssh/sshd_config | awk '{print $2}' | tail -1"
+      register: _ssh_banner
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read Ciphers"
+      shell: "grep -i '^\\s*Ciphers' /etc/ssh/sshd_config | cut -d' ' -f2- | tail -1"
+      register: _ssh_ciphers
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read MACs"
+      shell: "grep -i '^\\s*MACs' /etc/ssh/sshd_config | cut -d' ' -f2- | tail -1"
+      register: _ssh_macs
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    - name: "[SSH] Read KexAlgorithms"
+      shell: "grep -i '^\\s*KexAlgorithms' /etc/ssh/sshd_config | cut -d' ' -f2- | tail -1"
+      register: _ssh_kex
+      changed_when: false
+      ignore_errors: yes
+      when: _sshd_config_stat.stat.exists
+
+    # ========================================================
+    # A.8.5 - PASSWORD POLICY
+    # ========================================================
+
+    - name: "[PWD] Read PASS_MAX_DAYS from login.defs"
+      shell: "grep '^PASS_MAX_DAYS' /etc/login.defs | awk '{print $2}'"
+      register: _pass_max_days
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[PWD] Read PASS_MIN_DAYS from login.defs"
+      shell: "grep '^PASS_MIN_DAYS' /etc/login.defs | awk '{print $2}'"
+      register: _pass_min_days
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[PWD] Read PASS_MIN_LEN from login.defs"
+      shell: "grep '^PASS_MIN_LEN' /etc/login.defs | awk '{print $2}'"
+      register: _pass_min_len
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[PWD] Read PASS_WARN_AGE from login.defs"
+      shell: "grep '^PASS_WARN_AGE' /etc/login.defs | awk '{print $2}'"
+      register: _pass_warn_age
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[PWD] Check if pam_pwquality is installed"
+      shell: "dpkg -l libpam-pwquality 2>/dev/null | grep -c '^ii'"
+      register: _pwquality_installed
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[PWD] Read pwquality minlen"
+      shell: "grep '^\\s*minlen' /etc/security/pwquality.conf 2>/dev/null | cut -d'=' -f2 | tr -d ' '"
+      register: _pwq_minlen
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[PWD] Read pwquality dcredit"
+      shell: "grep '^\\s*dcredit' /etc/security/pwquality.conf 2>/dev/null | cut -d'=' -f2 | tr -d ' '"
+      register: _pwq_dcredit
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[PWD] Read pwquality ucredit"
+      shell: "grep '^\\s*ucredit' /etc/security/pwquality.conf 2>/dev/null | cut -d'=' -f2 | tr -d ' '"
+      register: _pwq_ucredit
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[PWD] Read pwquality lcredit"
+      shell: "grep '^\\s*lcredit' /etc/security/pwquality.conf 2>/dev/null | cut -d'=' -f2 | tr -d ' '"
+      register: _pwq_lcredit
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[PWD] Read pwquality ocredit"
+      shell: "grep '^\\s*ocredit' /etc/security/pwquality.conf 2>/dev/null | cut -d'=' -f2 | tr -d ' '"
+      register: _pwq_ocredit
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[PWD] Read pwquality minclass"
+      shell: "grep '^\\s*minclass' /etc/security/pwquality.conf 2>/dev/null | cut -d'=' -f2 | tr -d ' '"
+      register: _pwq_minclass
+      changed_when: false
+      ignore_errors: yes
+
+    # ========================================================
+    # A.8.2 - PRIVILEGED ACCESS / SUDO
+    # ========================================================
+
+    - name: "[SUDO] Check for NOPASSWD entries in sudoers"
+      shell: "grep -r 'NOPASSWD' /etc/sudoers /etc/sudoers.d/ 2>/dev/null | grep -v '^#' | wc -l"
+      register: _nopasswd_count
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SUDO] Get sudoers file permissions"
+      stat:
+        path: /etc/sudoers
+      register: _sudoers_stat
+      ignore_errors: yes
+
+    # ========================================================
+    # A.8.20 - FIREWALL
+    # ========================================================
+
+    - name: "[FW] Check UFW status"
+      shell: "ufw status 2>/dev/null | head -1 | awk '{print $2}'"
+      register: _ufw_status
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[FW] Get UFW default incoming policy"
+      shell: "ufw status verbose 2>/dev/null | grep 'Default:' | head -1 | grep -oP '\\(incoming\\).*?\\K\\w+' || echo 'unknown'"
+      register: _ufw_incoming_raw
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[FW] Get UFW default incoming - alt method"
+      shell: "grep '^DEFAULT_INPUT_POLICY=' /etc/default/ufw 2>/dev/null | cut -d'\"' -f2 | tr '[:upper:]' '[:lower:]' | sed 's/drop/deny/'"
+      register: _ufw_incoming
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[FW] Get UFW default outgoing policy"
+      shell: "grep '^DEFAULT_OUTPUT_POLICY=' /etc/default/ufw 2>/dev/null | cut -d'\"' -f2 | tr '[:upper:]' '[:lower:]' | sed 's/accept/allow/'"
+      register: _ufw_outgoing
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[FW] Count firewall rules"
+      shell: "ufw status numbered 2>/dev/null | grep -c '\\[' || echo 0"
+      register: _fw_rules_count
+      changed_when: false
+      ignore_errors: yes
+
+    # ========================================================
+    # SERVICES STATUS
+    # ========================================================
+
+    - name: "[SVC] Check auditd installed"
+      shell: "dpkg -l auditd 2>/dev/null | grep -c '^ii'"
+      register: _auditd_installed
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SVC] Check auditd running"
+      shell: "systemctl is-active auditd 2>/dev/null || echo inactive"
+      register: _auditd_running
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SVC] Check auditd enabled"
+      shell: "systemctl is-enabled auditd 2>/dev/null || echo disabled"
+      register: _auditd_enabled
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SVC] Check rsyslog installed"
+      shell: "dpkg -l rsyslog 2>/dev/null | grep -c '^ii'"
+      register: _rsyslog_installed
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SVC] Check rsyslog running"
+      shell: "systemctl is-active rsyslog 2>/dev/null || echo inactive"
+      register: _rsyslog_running
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SVC] Check rsyslog enabled"
+      shell: "systemctl is-enabled rsyslog 2>/dev/null || echo disabled"
+      register: _rsyslog_enabled
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SVC] Check ClamAV installed"
+      shell: "dpkg -l clamav-daemon 2>/dev/null | grep -c '^ii'"
+      register: _clamav_installed
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SVC] Check ClamAV running"
+      shell: "systemctl is-active clamav-daemon 2>/dev/null || echo inactive"
+      register: _clamav_running
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SVC] Check ClamAV enabled"
+      shell: "systemctl is-enabled clamav-daemon 2>/dev/null || echo disabled"
+      register: _clamav_enabled
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SVC] Check systemd-timesyncd running"
+      shell: "systemctl is-active systemd-timesyncd 2>/dev/null || echo inactive"
+      register: _timesyncd_running
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SVC] Check systemd-timesyncd enabled"
+      shell: "systemctl is-enabled systemd-timesyncd 2>/dev/null || echo disabled"
+      register: _timesyncd_enabled
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SVC] Check unattended-upgrades installed"
+      shell: "dpkg -l unattended-upgrades 2>/dev/null | grep -c '^ii'"
+      register: _unatt_installed
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[SVC] Check unattended-upgrades enabled"
+      shell: "grep -r 'APT::Periodic::Unattended-Upgrade' /etc/apt/apt.conf.d/ 2>/dev/null | grep -oP '\"\\K[0-9]+' | tail -1"
+      register: _unatt_enabled
+      changed_when: false
+      ignore_errors: yes
+
+    # ========================================================
+    # A.8.9 - FILE PERMISSIONS
+    # ========================================================
+
+    - name: "[PERM] Stat /etc/passwd"
+      stat:
+        path: /etc/passwd
+      register: _stat_passwd
+
+    - name: "[PERM] Stat /etc/shadow"
+      stat:
+        path: /etc/shadow
+      register: _stat_shadow
+
+    - name: "[PERM] Stat /etc/group"
+      stat:
+        path: /etc/group
+      register: _stat_group
+
+    - name: "[PERM] Stat /etc/gshadow"
+      stat:
+        path: /etc/gshadow
+      register: _stat_gshadow
+      ignore_errors: yes
+
+    - name: "[PERM] Stat /etc/ssh/sshd_config"
+      stat:
+        path: /etc/ssh/sshd_config
+      register: _stat_sshd_config
+      ignore_errors: yes
+
+    # ========================================================
+    # A.8.22 - NETWORK SETTINGS
+    # ========================================================
+
+    - name: "[NET] Get IPv4 forwarding"
+      shell: "cat /proc/sys/net/ipv4/ip_forward"
+      register: _ipv4_fwd
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[NET] Get IPv6 forwarding"
+      shell: "cat /proc/sys/net/ipv6/conf/all/forwarding 2>/dev/null || echo 0"
+      register: _ipv6_fwd
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[NET] Get ICMP redirect accept"
+      shell: "cat /proc/sys/net/ipv4/conf/all/accept_redirects"
+      register: _icmp_redirect
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[NET] Get send redirects"
+      shell: "cat /proc/sys/net/ipv4/conf/all/send_redirects"
+      register: _send_redirect
+      changed_when: false
+      ignore_errors: yes
+
+    # ========================================================
+    # A.8.17 - NTP / TIME SYNCHRONIZATION
+    # ========================================================
+
+    - name: "[NTP] Check time synchronization"
+      shell: "timedatectl show --property=NTPSynchronized --value 2>/dev/null || echo 'unknown'"
+      register: _ntp_sync
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[NTP] Get NTP service name"
+      shell: "timedatectl show --property=NTP --value 2>/dev/null || echo 'unknown'"
+      register: _ntp_active
+      changed_when: false
+      ignore_errors: yes
+
+    # ========================================================
+    # A.8.8 - UPDATES / VULNERABILITY MANAGEMENT
+    # ========================================================
+
+    - name: "[UPD] Count pending security updates"
+      shell: "apt list --upgradable 2>/dev/null | grep -i 'security' | wc -l"
+      register: _security_updates
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[UPD] Count total pending updates"
+      shell: "apt list --upgradable 2>/dev/null | grep -v 'Listing' | wc -l"
+      register: _total_updates
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[UPD] Get last apt update date"
+      shell: "stat -c '%Y' /var/lib/apt/periodic/update-stamp 2>/dev/null | xargs -I{} date -d @{} '+%Y-%m-%d' 2>/dev/null || echo 'unknown'"
+      register: _last_update
+      changed_when: false
+      ignore_errors: yes
+
+    # ========================================================
+    # A.8.13 - BACKUP
+    # ========================================================
+
+    - name: "[BKP] Check for backup cron jobs"
+      shell: "crontab -l 2>/dev/null | grep -iE 'backup|rsync|tar|borg|restic|duplicity' | wc -l"
+      register: _backup_cron
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[BKP] Check for backup tools"
+      shell: "which rsync borg restic duplicity bacula-fd 2>/dev/null | wc -l"
+      register: _backup_tools
+      changed_when: false
+      ignore_errors: yes
+
+    # ========================================================
+    # A.8.16 - MONITORING
+    # ========================================================
+
+    - name: "[MON] Check for monitoring agents"
+      shell: "dpkg -l 2>/dev/null | grep -iE 'nagios|zabbix|prometheus-node|datadog|newrelic|ossec|wazuh' | grep -c '^ii'"
+      register: _monitoring_installed
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[MON] Check monitoring agent running"
+      shell: "systemctl list-units --type=service --state=running 2>/dev/null | grep -iE 'nagios|zabbix|node.exporter|datadog|newrelic|ossec|wazuh' | wc -l"
+      register: _monitoring_running
+      changed_when: false
+      ignore_errors: yes
+
+    # ========================================================
+    # A.8.15 - AUDIT LOGGING
+    # ========================================================
+
+    - name: "[LOG] Count auditd rules"
+      shell: "auditctl -l 2>/dev/null | grep -v 'No rules' | wc -l"
+      register: _audit_rules
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[LOG] Check log rotation configured"
+      shell: "ls /etc/logrotate.d/ 2>/dev/null | wc -l"
+      register: _logrotate_count
+      changed_when: false
+      ignore_errors: yes
+
+    - name: "[LOG] Check remote syslog"
+      shell: "grep -rE '^[^#]*@@?' /etc/rsyslog.conf /etc/rsyslog.d/ 2>/dev/null | grep -v '^#' | wc -l"
+      register: _remote_syslog
+      changed_when: false
+      ignore_errors: yes
+
+    # ========================================================
+    # A.8.24 - CRYPTOGRAPHY (FIPS)
+    # ========================================================
+
+    - name: "[CRYPTO] Check FIPS mode"
+      shell: "cat /proc/sys/crypto/fips_enabled 2>/dev/null || echo 0"
+      register: _fips_mode
+      changed_when: false
+      ignore_errors: yes
+
+    # ========================================================
+    # ASSEMBLE AND OUTPUT JSON
+    # ========================================================
+
+    - name: "[OUT] Build configuration data"
+      set_fact:
+        system_config:
+          system_info:
+            hostname: "{{ _hostname.stdout | default('unknown') }}"
+            ip_address: "{{ _ip_address.stdout | default('unknown') }}"
+            os: "{{ _os_version.stdout | default('unknown') }}"
+            kernel: "{{ _kernel.stdout | default('unknown') }}"
+            architecture: "{{ _arch.stdout | default('unknown') }}"
+            collection_date: "{{ ansible_date_time.iso8601 }}"
+            uptime: "{{ _uptime.stdout | default('unknown') }}"
+          ssh_config:
+            PermitRootLogin: "{{ _ssh_permit_root.stdout | default('not set') }}"
+            PasswordAuthentication: "{{ _ssh_password_auth.stdout | default('not set') }}"
+            PubkeyAuthentication: "{{ _ssh_pubkey_auth.stdout | default('not set') }}"
+            PermitEmptyPasswords: "{{ _ssh_empty_pass.stdout | default('not set') }}"
+            MaxAuthTries: "{{ _ssh_max_auth.stdout | default('not set') }}"
+            LoginGraceTime: "{{ _ssh_grace_time.stdout | default('not set') }}"
+            X11Forwarding: "{{ _ssh_x11.stdout | default('not set') }}"
+            Protocol: "{{ _ssh_protocol.stdout | default('2') }}"
+            LogLevel: "{{ _ssh_loglevel.stdout | default('not set') }}"
+            ClientAliveInterval: "{{ _ssh_alive_interval.stdout | default('not set') }}"
+            ClientAliveCountMax: "{{ _ssh_alive_count.stdout | default('not set') }}"
+            AllowTcpForwarding: "{{ _ssh_tcp_fwd.stdout | default('not set') }}"
+            Banner: "{{ _ssh_banner.stdout | default('none') }}"
+            Ciphers: "{{ _ssh_ciphers.stdout | default('not set') }}"
+            MACs: "{{ _ssh_macs.stdout | default('not set') }}"
+            KexAlgorithms: "{{ _ssh_kex.stdout | default('not set') }}"
+          password_policy:
+            PASS_MAX_DAYS: "{{ _pass_max_days.stdout | default('99999') }}"
+            PASS_MIN_DAYS: "{{ _pass_min_days.stdout | default('0') }}"
+            PASS_MIN_LEN: "{{ _pass_min_len.stdout | default('5') }}"
+            PASS_WARN_AGE: "{{ _pass_warn_age.stdout | default('7') }}"
+            pam_pwquality_installed: "{{ (_pwquality_installed.stdout | default('0')) | int > 0 }}"
+            minlen: "{{ _pwq_minlen.stdout | default('0') }}"
+            dcredit: "{{ _pwq_dcredit.stdout | default('0') }}"
+            ucredit: "{{ _pwq_ucredit.stdout | default('0') }}"
+            lcredit: "{{ _pwq_lcredit.stdout | default('0') }}"
+            ocredit: "{{ _pwq_ocredit.stdout | default('0') }}"
+            minclass: "{{ _pwq_minclass.stdout | default('0') }}"
+          sudo_config:
+            nopasswd_entries_exist: "{{ (_nopasswd_count.stdout | default('0')) | int > 0 }}"
+            sudoers_permissions: "{{ _sudoers_stat.stat.mode | default('unknown') }}"
+          firewall:
+            status: "{{ _ufw_status.stdout | default('inactive') | lower }}"
+            default_incoming: "{{ _ufw_incoming.stdout | default('unknown') | lower }}"
+            default_outgoing: "{{ _ufw_outgoing.stdout | default('unknown') | lower }}"
+            rules_count: "{{ _fw_rules_count.stdout | default('0') | int }}"
+          services:
+            auditd:
+              installed: "{{ (_auditd_installed.stdout | default('0')) | int > 0 }}"
+              running: "{{ _auditd_running.stdout | default('inactive') == 'active' }}"
+              enabled: "{{ _auditd_enabled.stdout | default('disabled') == 'enabled' }}"
+            rsyslog:
+              installed: "{{ (_rsyslog_installed.stdout | default('0')) | int > 0 }}"
+              running: "{{ _rsyslog_running.stdout | default('inactive') == 'active' }}"
+              enabled: "{{ _rsyslog_enabled.stdout | default('disabled') == 'enabled' }}"
+            clamav_daemon:
+              installed: "{{ (_clamav_installed.stdout | default('0')) | int > 0 }}"
+              running: "{{ _clamav_running.stdout | default('inactive') == 'active' }}"
+              enabled: "{{ _clamav_enabled.stdout | default('disabled') == 'enabled' }}"
+            systemd_timesyncd:
+              installed: true
+              running: "{{ _timesyncd_running.stdout | default('inactive') == 'active' }}"
+              enabled: "{{ _timesyncd_enabled.stdout | default('disabled') == 'enabled' }}"
+            unattended_upgrades:
+              installed: "{{ (_unatt_installed.stdout | default('0')) | int > 0 }}"
+              enabled: "{{ (_unatt_enabled.stdout | default('0')) | int > 0 }}"
+          file_permissions:
+            etc_passwd:
+              path: "/etc/passwd"
+              mode: "{{ _stat_passwd.stat.mode | default('unknown') }}"
+              owner: "{{ _stat_passwd.stat.pw_name | default('unknown') }}"
+              group: "{{ _stat_passwd.stat.gr_name | default('unknown') }}"
+            etc_shadow:
+              path: "/etc/shadow"
+              mode: "{{ _stat_shadow.stat.mode | default('unknown') }}"
+              owner: "{{ _stat_shadow.stat.pw_name | default('unknown') }}"
+              group: "{{ _stat_shadow.stat.gr_name | default('unknown') }}"
+            etc_group:
+              path: "/etc/group"
+              mode: "{{ _stat_group.stat.mode | default('unknown') }}"
+              owner: "{{ _stat_group.stat.pw_name | default('unknown') }}"
+              group: "{{ _stat_group.stat.gr_name | default('unknown') }}"
+            etc_gshadow:
+              path: "/etc/gshadow"
+              mode: "{{ _stat_gshadow.stat.mode | default('unknown') }}"
+              owner: "{{ _stat_gshadow.stat.pw_name | default('unknown') }}"
+              group: "{{ _stat_gshadow.stat.gr_name | default('unknown') }}"
+            sshd_config:
+              path: "/etc/ssh/sshd_config"
+              mode: "{{ _stat_sshd_config.stat.mode | default('unknown') }}"
+              owner: "{{ _stat_sshd_config.stat.pw_name | default('unknown') }}"
+              group: "{{ _stat_sshd_config.stat.gr_name | default('unknown') }}"
+          network:
+            ip_forwarding: "{{ _ipv4_fwd.stdout | default('0') }}"
+            ip6_forwarding: "{{ _ipv6_fwd.stdout | default('0') }}"
+            icmp_redirect_accept: "{{ _icmp_redirect.stdout | default('0') }}"
+            send_redirects: "{{ _send_redirect.stdout | default('0') }}"
+          ntp:
+            synchronized: "{{ _ntp_sync.stdout | default('no') | lower == 'yes' }}"
+            service_active: "{{ _ntp_active.stdout | default('no') | lower == 'yes' }}"
+            service_name: "systemd-timesyncd"
+          updates:
+            pending_security_updates: "{{ _security_updates.stdout | default('0') | int }}"
+            pending_total_updates: "{{ _total_updates.stdout | default('0') | int }}"
+            auto_updates_enabled: "{{ (_unatt_enabled.stdout | default('0')) | int > 0 }}"
+            last_update: "{{ _last_update.stdout | default('unknown') }}"
+          backup:
+            backup_configured: "{{ (_backup_cron.stdout | default('0')) | int > 0 }}"
+            backup_tools_installed: "{{ (_backup_tools.stdout | default('0')) | int > 0 }}"
+            cron_backup_jobs: "{{ _backup_cron.stdout | default('0') | int }}"
+          monitoring:
+            agent_installed: "{{ (_monitoring_installed.stdout | default('0')) | int > 0 }}"
+            agent_running: "{{ (_monitoring_running.stdout | default('0')) | int > 0 }}"
+          audit_logging:
+            auditd_rules_count: "{{ _audit_rules.stdout | default('0') | int }}"
+            log_retention_configured: "{{ (_logrotate_count.stdout | default('0')) | int > 5 }}"
+            syslog_remote_configured: "{{ (_remote_syslog.stdout | default('0')) | int > 0 }}"
+          crypto:
+            fips_mode_enabled: "{{ (_fips_mode.stdout | default('0')) | int > 0 }}"
+
+    - name: "[OUT] Write system_config.json"
+      copy:
+        content: "{{ system_config | to_nice_json }}"
+        dest: "{{ output_dir }}/system_config.json"
+        mode: '0644'
+
+    - name: "[OUT] Display summary"
+      debug:
+        msg: |
+          ✅ Configuration collected successfully!
+          📄 Output: {{ output_dir }}/system_config.json
+          🖥️  Host: {{ system_config.system_info.hostname }}
+          🐧 OS: {{ system_config.system_info.os }}
+          📅 Date: {{ system_config.system_info.collection_date }}

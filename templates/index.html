@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — ISO Audit App{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">ISO 27001 <span class="text-accent">Compliance Audit</span></h1>
+            <p class="hero-subtitle">Upload your Ubuntu server configuration to evaluate compliance against Annex A
+                Section 8 technology controls.</p>
+        </div>
+    </section>
+
+    <!-- Upload Section -->
+    <section class="section">
+        <div class="upload-card">
+            <div class="card-header">
+                <h2 class="card-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                    </svg>
+                    Upload System Configuration
+                </h2>
+            </div>
+            <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-zone-content">
+                        <div class="drop-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                                <polyline points="14,2 14,8 20,8" />
+                                <line x1="12" y1="18" x2="12" y2="12" />
+                                <polyline points="9,15 12,12 15,15" />
+                            </svg>
+                        </div>
+                        <p class="drop-text">Drag & drop your <strong>system_config.json</strong> here</p>
+                        <p class="drop-hint">or click to browse</p>
+                        <input type="file" name="config_file" id="configFile" accept=".json" hidden>
+                    </div>
+                    <div class="file-preview" id="filePreview" style="display:none;">
+                        <div class="file-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                                <polyline points="14,2 14,8 20,8" />
+                            </svg>
+                        </div>
+                        <span class="file-name" id="fileName"></span>
+                        <button type="button" class="file-remove" id="fileRemove">✕</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                    Run Audit
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="section">
+        <h2 class="section-title">How It Works</h2>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>Collect Configuration</h3>
+                <p>Run the collector playbook on your Ubuntu server to gather system configuration into a JSON file.</p>
+                <code class="step-code">sudo ./collect.sh</code>
+            </div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>Upload Config File</h3>
+                <p>Upload the generated <code>system_config.json</code> to this app using the upload area above.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>Review Results</h3>
+                <p>View detailed pass/fail results for each ISO 27001 A.8 control with remediation guidance.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <h3>Download Reports</h3>
+                <p>Generate and download professional HTML or PDF audit reports for documentation.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Controls Covered -->
+    <section class="section">
+        <h2 class="section-title">Controls Covered</h2>
+        <div class="controls-grid">
+            <div class="control-tag"><span class="tag-id">A.8.2</span> Privileged Access Rights</div>
+            <div class="control-tag"><span class="tag-id">A.8.5</span> Secure Authentication</div>
+            <div class="control-tag"><span class="tag-id">A.8.7</span> Malware Protection</div>
+            <div class="control-tag"><span class="tag-id">A.8.8</span> Vulnerability Management</div>
+            <div class="control-tag"><span class="tag-id">A.8.9</span> Configuration Management</div>
+            <div class="control-tag"><span class="tag-id">A.8.13</span> Information Backup</div>
+            <div class="control-tag"><span class="tag-id">A.8.15</span> Logging</div>
+            <div class="control-tag"><span class="tag-id">A.8.16</span> Monitoring Activities</div>
+            <div class="control-tag"><span class="tag-id">A.8.17</span> Clock Synchronization</div>
+            <div class="control-tag"><span class="tag-id">A.8.20</span> Network Security</div>
+            <div class="control-tag"><span class="tag-id">A.8.22</span> Network Segregation</div>
+            <div class="control-tag"><span class="tag-id">A.8.24</span> Cryptography</div>
+        </div>
+    </section>
+
+    <!-- Past Audits -->
+    {% if past_audits %}
+    <section class="section">
+        <h2 class="section-title">Recent Audits</h2>
+        <div class="audits-table-wrapper">
+            <table class="audits-table">
+                <thead>
+                    <tr>
+                        <th>Host</th>
+                        <th>Source File</th>
+                        <th>Date</th>
+                        <th>Score</th>
+                        <th>Passed</th>
+                        <th>Failed</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for audit in past_audits %}
+                    <tr>
+                        <td><strong>{{ audit.summary.hostname }}</strong></td>
+                        <td class="text-muted">{{ audit.filename }}</td>
+                        <td class="text-muted">{{ audit.summary.timestamp[:16] }}</td>
+                        <td>
+                            <span
+                                class="score-badge {% if audit.summary.compliance_percentage >= 80 %}score-good{% elif audit.summary.compliance_percentage >= 50 %}score-warning{% else %}score-danger{% endif %}">
+                                {{ audit.summary.compliance_percentage }}%
+                            </span>
+                        </td>
+                        <td><span class="text-success">{{ audit.summary.passed }}</span></td>
+                        <td><span class="text-danger">{{ audit.summary.failed }}</span></td>
+                        <td class="actions-cell">
+                            <a href="{{ url_for('results', audit_id=audit.audit_id) }}"
+                                class="btn btn-sm btn-outline">View</a>
+                            <form action="{{ url_for('delete_audit', audit_id=audit.audit_id) }}" method="POST"
+                                style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-ghost" title="Delete">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <polyline points="3,6 5,6 21,6" />
+                                        <path
+                                            d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+                                    </svg>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,144 @@
+{
+  "system_info": {
+    "hostname": "ubuntu-server-01",
+    "ip_address": "192.168.1.100",
+    "os": "Ubuntu 22.04.3 LTS",
+    "kernel": "5.15.0-91-generic",
+    "architecture": "x86_64",
+    "collection_date": "2026-03-21T10:00:00Z",
+    "uptime": "45 days, 3:22"
+  },
+  "ssh_config": {
+    "PermitRootLogin": "no",
+    "PasswordAuthentication": "yes",
+    "PubkeyAuthentication": "yes",
+    "PermitEmptyPasswords": "no",
+    "MaxAuthTries": "6",
+    "LoginGraceTime": "120",
+    "X11Forwarding": "yes",
+    "Protocol": "2",
+    "LogLevel": "INFO",
+    "ClientAliveInterval": "300",
+    "ClientAliveCountMax": "3",
+    "AllowTcpForwarding": "yes",
+    "Banner": "none",
+    "Ciphers": "chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr",
+    "MACs": "hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,hmac-sha2-512,hmac-sha2-256",
+    "KexAlgorithms": "curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512"
+  },
+  "password_policy": {
+    "PASS_MAX_DAYS": "99999",
+    "PASS_MIN_DAYS": "0",
+    "PASS_MIN_LEN": "8",
+    "PASS_WARN_AGE": "7",
+    "pam_pwquality_installed": false,
+    "minlen": "8",
+    "dcredit": "0",
+    "ucredit": "0",
+    "lcredit": "0",
+    "ocredit": "0",
+    "minclass": "0"
+  },
+  "sudo_config": {
+    "nopasswd_entries_exist": true,
+    "sudoers_permissions": "440"
+  },
+  "firewall": {
+    "status": "active",
+    "default_incoming": "deny",
+    "default_outgoing": "allow",
+    "rules_count": 5
+  },
+  "services": {
+    "auditd": {
+      "installed": true,
+      "running": true,
+      "enabled": true
+    },
+    "rsyslog": {
+      "installed": true,
+      "running": true,
+      "enabled": true
+    },
+    "clamav_daemon": {
+      "installed": false,
+      "running": false,
+      "enabled": false
+    },
+    "systemd_timesyncd": {
+      "installed": true,
+      "running": true,
+      "enabled": true
+    },
+    "unattended_upgrades": {
+      "installed": true,
+      "enabled": true
+    }
+  },
+  "file_permissions": {
+    "etc_passwd": {
+      "path": "/etc/passwd",
+      "mode": "0644",
+      "owner": "root",
+      "group": "root"
+    },
+    "etc_shadow": {
+      "path": "/etc/shadow",
+      "mode": "0640",
+      "owner": "root",
+      "group": "shadow"
+    },
+    "etc_group": {
+      "path": "/etc/group",
+      "mode": "0644",
+      "owner": "root",
+      "group": "root"
+    },
+    "sshd_config": {
+      "path": "/etc/ssh/sshd_config",
+      "mode": "0644",
+      "owner": "root",
+      "group": "root"
+    },
+    "etc_gshadow": {
+      "path": "/etc/gshadow",
+      "mode": "0640",
+      "owner": "root",
+      "group": "shadow"
+    }
+  },
+  "network": {
+    "ip_forwarding": "0",
+    "ip6_forwarding": "0",
+    "icmp_redirect_accept": "0",
+    "send_redirects": "0"
+  },
+  "ntp": {
+    "synchronized": true,
+    "service_active": true,
+    "service_name": "systemd-timesyncd"
+  },
+  "updates": {
+    "pending_security_updates": 5,
+    "pending_total_updates": 23,
+    "auto_updates_enabled": true,
+    "last_update": "2026-03-15"
+  },
+  "backup": {
+    "backup_configured": false,
+    "backup_tools_installed": false,
+    "cron_backup_jobs": 0
+  },
+  "monitoring": {
+    "agent_installed": false,
+    "agent_running": false
+  },
+  "audit_logging": {
+    "auditd_rules_count": 0,
+    "log_retention_configured": false,
+    "syslog_remote_configured": false
+  },
+  "crypto": {
+    "fips_mode_enabled": false
+  }
+}
